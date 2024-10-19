@@ -43,5 +43,10 @@ namespace TaskBrokerSandbox.Workers
         {
             tasks.Enqueue(taskUid);
         }
+
+        public int GetTasksCount()
+        {
+            return tasks.Count;
+        }
     }
 }

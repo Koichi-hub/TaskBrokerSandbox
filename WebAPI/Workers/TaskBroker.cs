@@ -24,5 +24,15 @@ namespace TaskBrokerSandbox.Workers
         {
             taskProcessors[taskProcessorType].Item1.EnqueueTask(taskUid);
         }
+
+        public Dictionary<TaskProcessorTypeEnum, int> GetTaskProcessorMonitoringData()
+        {
+            var taskProcessorMonitoringData = new Dictionary<TaskProcessorTypeEnum, int>();
+            foreach (var keyValuePair in taskProcessors)
+            {
+                taskProcessorMonitoringData[keyValuePair.Key] = keyValuePair.Value.Item1.GetTasksCount();
+            }
+            return taskProcessorMonitoringData;
+        }
     }
 }
