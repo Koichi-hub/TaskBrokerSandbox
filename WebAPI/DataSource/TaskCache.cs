@@ -17,8 +17,27 @@ namespace TaskBrokerSandbox.DataSource
             return tasks.Values.ToList();
         }
 
+        public int GetTotalTasksCount()
+        {
+            return tasks.Count;
+        }
+
+        public int GetProcessingTasksCount()
+        {
+            return tasks.Values.Count(x => !x.IsCompleted);
+        }
+
+        public int GetCompletedTasksCount()
+        {
+            return tasks.Values.Count(x => x.IsCompleted);
+        }
+
         public bool AddTask(TaskModel taskModel)
         {
+            if (tasks.ContainsKey(taskModel.Uid))
+            {
+                throw new ArgumentException("You can't process task again");
+            }
             return tasks.TryAdd(taskModel.Uid, taskModel);
         }
     }

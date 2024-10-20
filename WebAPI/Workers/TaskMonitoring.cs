@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using Newtonsoft.Json;
+using TaskBrokerSandbox.DataSource;
 using TaskBrokerSandbox.Workers;
 using WebAPI.Hubs;
 using WebAPI.Types;
@@ -8,7 +9,8 @@ namespace WebAPI.Workers
 {
     public class TaskMonitoring(
         IHubContext<TaskProcessorsMonitoringHub> taskProcessorsMonitoringHub,
-        TaskBroker taskBroker 
+        TaskBroker taskBroker,
+        TaskCache taskCache
     ) : BackgroundService
     {
         private readonly TimeSpan monitoringInterval = TimeSpan.FromSeconds(1);
@@ -26,7 +28,10 @@ namespace WebAPI.Workers
         {
             var monitoringData = new MonitoringDataType
             {
-                TaskProcessorsMonitoringData = taskBroker.GetTaskProcessorMonitoringData()
+                TaskProcessorsMonitoringData = taskBroker.GetTaskProcessorMonitoringData(),
+                TotalTasksCount = taskCache.GetTotalTasksCount(),
+                ProcessingTasksCount = taskCache.GetProcessingTasksCount(),
+                CompletedTasksCount = taskCache.GetCompletedTasksCount(),
             };
             return taskProcessorsMonitoringHub.Clients.All.SendAsync("ReceiveMonitoringData", JsonConvert.SerializeObject(monitoringData), cancellationToken);
         }

@@ -3,6 +3,7 @@ using TaskBrokerSandbox.DataSource;
 using TaskBrokerSandbox.Types;
 using TaskBrokerSandbox.Workers;
 using WebAPI.Hubs;
+using WebAPI.Types;
 using WebAPI.Workers;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -36,16 +37,30 @@ app.UseSwagger();
 app.UseSwaggerUI();
 app.UseCors();
 
-app.MapPost("/tasks", ([FromQuery] TaskProcessorTypeEnum taskProcessorType, [FromServices] TaskBroker taskBroker, [FromServices] TaskCache taskCache) =>
+app.MapPost("/tasks", ([FromBody] AddTaskRequest addTaskRequest, [FromServices] TaskBroker taskBroker, [FromServices] TaskCache taskCache) =>
 {
+    if (!Enum.TryParse(addTaskRequest.TaskProcessorType, out TaskProcessorTypeEnum taskProcessorType))
+    {
+        throw new ArgumentException("Incorrect TaskProcessorTypeEnum value");
+    }
+
     var taskModel = new TaskModel
     {
-        Uid = Guid.NewGuid(),
+        Uid = addTaskRequest.Uid,
         TaskProcessorType = taskProcessorType
     };
-    taskCache.AddTask(taskModel);
-    taskBroker.AssignTaskToProcessor(taskModel.Uid, taskProcessorType);
-    return taskModel;
+
+    try
+    {
+        taskCache.AddTask(taskModel);
+    }
+    catch (ArgumentException ex)
+    {
+        return Results.BadRequest(ex.Message);
+    }
+
+    taskBroker.AssignTaskToProcessor(taskModel.Uid, taskModel.TaskProcessorType);
+    return Results.Ok(taskModel);
 })
 .WithOpenApi();
 

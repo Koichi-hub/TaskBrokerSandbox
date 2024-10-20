@@ -29,10 +29,11 @@ namespace TaskBrokerSandbox.Workers
 
         private async Task Process(CancellationToken cancellationToken)
         {
+            var random = new Random();
             while (!cancellationToken.IsCancellationRequested && tasks.TryPeek(out var taskUid))
             {
                 var task = taskCache.GetTask(taskUid);
-                await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
+                await Task.Delay(TimeSpan.FromSeconds(random.Next(1, 10)), cancellationToken);
                 task.IsCompleted = true;
                 task.CompletedAt = DateTimeOffset.Now;
                 tasks.TryDequeue(out var _);
